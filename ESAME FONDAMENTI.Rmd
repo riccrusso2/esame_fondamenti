@@ -5,7 +5,11 @@ output:
   ioslides_presentation:
     css: ./style.css
     incremental: yes
-editor_options: 
+  slidy_presentation:
+    incremental: yes
+  beamer_presentation:
+    incremental: yes
+editor_options:
   chunk_output_type: inline
 ---
 
@@ -15,7 +19,7 @@ knitr::opts_chunk$set(cache = TRUE, message = FALSE, warning = FALSE)
 
 ## Analisi del numero di sparatorie della polizia statunitense
 
-Molte persone affermano che la polizia degli Stati Uniti sia razzista e il loro atteggiamento differisce in base alla razza della persona che stanno affrontando.
+Molte persone affermano che la polizia degli Stati Uniti sia razzista e il loro atteggiamento differisca in base alla razza della persona che stanno affrontando.
 
 Lo scopo di questa analisi è capire il fattore,quindi la variabile tra quelle proposte nel dataset, che influenza un poliziotto a sparare.
 
@@ -35,7 +39,7 @@ library(plotly)
 library(ggthemes)
 library(lubridate)
 
-shootings<-read_csv("C:/Users/User/Documents/universita/ScienzaDiDati/progettofinale/shootings.csv")
+shootings<-read_csv("C:/Users/User/Documents/universita/esame_fondamenti/shootings.csv")
 
 ```
 
