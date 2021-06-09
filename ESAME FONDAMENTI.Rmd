@@ -62,12 +62,12 @@ L'accaduto ha  attirato un'enorme attenzione nei mass media e probabilmente ha p
 ```{r echo=FALSE}
 
 
-shootings<-shootings %>% mutate(year=str_extract(shootings$date,"20.."))
+shootings<-shootings %>% mutate(anno=str_extract(shootings$date,"20.."))
 
-shootingsXyear<-shootings %>% count(year) %>% mutate(shootings=n) %>% select(-n)
+shootingsXyear<-shootings %>% count(anno) %>% mutate(sparatorie=n) %>% select(-n)
 
-shootingsXyear %>% ggplot(aes(x=year,y=shootings)) + geom_col(aes(fill=shootings))+
-  labs(title = "number of shootings per year")
+shootingsXyear %>% ggplot(aes(x=anno,y=sparatorie)) + geom_col(aes(fill=sparatorie))+
+  labs(title = "Numero di sparatorie per anno")
 
 
 
@@ -79,11 +79,12 @@ shootingsXyear %>% ggplot(aes(x=year,y=shootings)) + geom_col(aes(fill=shootings
 Successivamente ho analizzato con più precisione il numero di sparatorie mese per mese mostrando la media (~75) che confrontandolo con il numero di giorni è un numero abbastanza alto (~2.5)
 ```{r echo=FALSE}
 
-shootingsXdate<-shootings %>%group_by(month=floor_date(date,'month')) %>% summarize(shootings=n())
-mean_shootings<- mean(shootingsXdate$shootings)
+shootingsXdate<-shootings %>%group_by(mese=floor_date(date,'month')) %>% summarize(sparatorie=n())
+
+media_sparatorie<- mean(shootingsXdate$sparatorie)
 
 
-shootingsXdatePlot<-shootingsXdate %>% ggplot(aes(x=month,y=shootings))+geom_hline(yintercept =mean_shootings, linetype='dashed',color='red',size=1)+geom_area(fill='lightblue',alpha=0.6,size=0.75,color='black')
+shootingsXdatePlot<-shootingsXdate %>% ggplot(aes(x=mese,y=sparatorie))+geom_hline(yintercept =media_sparatorie, linetype='dashed',color='blue',size=1)+geom_area(fill='lightblue',alpha=0.6,size=0.75,color='black')
 
 
 shootingsXdatePlot
@@ -118,16 +119,18 @@ Il numero degli adulti è molto maggiore rispetto le altre due categorie,ma vedi
 
 group_age<-function(x){
   if(x<25){
-    "teenager"
+    "ragazzo"
   }else if(x<50&&x>=25){
-    "adult"
+    "adulto"
   }else{
-    "old"
+    "anziano"
   }
 }
-shootings<- shootings %>% mutate(age_group = sapply(age,group_age)) 
+ shootings<-rename(shootings,età=age)
 
-shootingXage_group<-shootings %>% ggplot(aes(age_group))+geom_bar(aes(fill=age_group))+labs(y="shootings")
+shootings<- shootings %>% mutate(gruppo_di_età = sapply(età,group_age)) 
+
+shootingXage_group<-shootings %>% ggplot(aes(gruppo_di_età))+geom_bar(aes(fill=gruppo_di_età))+labs(y="sparatorie")+theme_bw()
 
 shootingXage_group
 
@@ -147,7 +150,7 @@ Analizzando la questione per ogni età,si puo notare che la maggior parte delle 
 ```{r echo=FALSE}
 
 
-ggplot(data=shootings,aes(y=age,x=gender,fill=gender))+
+shootings  %>%  ggplot(aes(y=età,x=gender,fill=gender))+
   geom_point()+geom_violin()+theme_solarized()+theme(axis.text.x=element_text(angle=45,hjust=1),legend.position='none')+theme_bw()
 
 
@@ -166,14 +169,18 @@ Ciò potrebbe indicare che queste persone entrano a contatto con il crimine prim
 
 ```{r echo=FALSE}
 
-age_race <- ggplot(shootings,aes(x=age,group=race))+geom_density(aes(fill=race),alpha=0.5)+ labs(title="Age and Race of the people ")
+
+shootings<-shootings %>% rename(razza=race)
+
+
+age_race <- shootings %>% ggplot(aes(x=età,group=razza))+geom_density(aes(fill=razza),alpha=0.5)+ labs(title="età e razza delle persone sparate",y="densità")
 
 
 age_race
 
-shootingsXrace_top3<-shootings %>% filter(race=="Black"| race=="White" | race=="Hispanic")
+shootingsXrace_top3<-shootings %>% filter(razza=="Black"| razza=="White" | razza=="Hispanic")
 
-age_race_boxplot<-ggplot(shootingsXrace_top3,aes(y=age,x=race))+geom_boxplot(aes(fill=race),alpha=0.5)+ labs(title="Age and Race of the people ")
+age_race_boxplot<-ggplot(shootingsXrace_top3,aes(y=età,x=razza))+geom_boxplot(aes(fill=razza),alpha=0.5)+ labs(title="età e razza delle persone sparate ")
 
 
 age_race_boxplot
@@ -196,12 +203,14 @@ Tuttavia bisogna tenere conto che il [numero](https://www.census.gov/quickfacts/
 
 ```{r echo=FALSE}
 
-shootingsXrace<- shootings %>% count(race) %>% 
-  mutate(shootings=n) %>% select(-n)
 
 
-shootingsXracePlot<-shootingsXrace %>% ggplot(aes(x=race,y=shootings)) + geom_col(aes(fill=race))+geom_line()+
-  labs(title = "number of shootings per race")
+shootingsXrace<- shootings %>% count(razza) %>% 
+  mutate(sparatorie=n) %>% select(-n)
+
+
+shootingsXracePlot<-shootingsXrace %>% ggplot(aes(x=razza,y=sparatorie)) + geom_col(aes(fill=razza))+geom_line()+
+  labs(title = "numero di sparatorie per razza")
 
 
 shootingsXracePlot
@@ -218,12 +227,15 @@ Il dataset ci mostra come ogni persona può avere diversi comportamenti non appe
 
 ```{r echo=FALSE}
 
-shootingsXflee<- shootings %>% count(flee) %>% 
-  mutate(shootings=n) %>% select(-n)
+
+shootings<-shootings %>% rename(fuggito=flee)
+
+shootingsXflee<- shootings %>% count(fuggito) %>% 
+  mutate(sparatorie=n) %>% select(-n)
 
 
-shootingsXfleePlot<-shootingsXflee %>% ggplot(aes(x=flee,y=shootings)) + geom_col(aes(fill=flee))+
-  labs(title = " reaction during police confrontation")+coord_flip()
+shootingsXfleePlot<-shootingsXflee %>% ggplot(aes(x=fuggito,y=sparatorie)) + geom_col(aes(fill=fuggito))+
+  labs(title = "reazione durante il primo confronto con la polizia")+coord_flip()+labs(x="modalità di fuga")+theme_bw()
 
 
 shootingsXfleePlot
@@ -246,12 +258,14 @@ La maggior parte delle vittime ha avuto un atteggiamento aggressivo. A rigor di 
 
 ```{r echo=FALSE}
 
+shootings<-shootings %>% rename(livello_rischio=threat_level)
 
-shootingXlevel<-shootings %>% count(threat_level,sort = TRUE)
 
-shootingXlevel<-inner_join(shootingXlevel,shootings,by="threat_level")
+shootingXlevel<-shootings %>% count(livello_rischio,sort = TRUE)
 
-shootingXlevelPlot<-shootingXlevel %>% ggplot(aes(threat_level)) + geom_bar(color="white",aes(fill=threat_level))+labs(y="shootings")
+shootingXlevel<-inner_join(shootingXlevel,shootings,by="livello_rischio")
+
+shootingXlevelPlot<-shootingXlevel %>% ggplot(aes(livello_rischio)) + geom_bar(color="white",aes(fill=livello_rischio))+labs(y="sparatorie")
 
 shootingXlevelPlot
 
@@ -265,11 +279,14 @@ Continuiamo ad analizzare le variabili e passiamo all'analisi dell'arma possedut
 ## COSA SI POSSIEDE?
 ```{r echo=FALSE}
 
-shootingXarm<-shootings %>% count(armed,sort = TRUE) %>% top_n(5)
 
-shootingXarm<-inner_join(shootingXarm,shootings,by="armed")
+shootings<-shootings %>% rename(arma=armed)
 
-shootingXarmPlot<-shootingXarm  %>% ggplot(aes(armed)) + geom_bar(aes(fill=threat_level))+labs(y="shootings")
+shootingXarm<-shootings %>% count(arma,sort = TRUE) %>% top_n(5)
+
+shootingXarm<-inner_join(shootingXarm,shootings,by="arma")
+
+shootingXarmPlot<-shootingXarm  %>% ggplot(aes(arma)) + geom_bar(aes(fill=livello_rischio))+labs(y="sparatorie")
 
 shootingXarmPlot
 
@@ -282,15 +299,15 @@ shootingXarmPlot
 
 ```{r echo=FALSE}
 
-shootingXarm2<-shootings %>% count(armed,sort = TRUE)
+shootingXarm2<-shootings %>% count(arma,sort = TRUE)
 
-shootingXarm2 %>% with(wordcloud(armed,n,scale=c(8,.8)))
+shootingXarm2 %>% with(wordcloud(arma,n,scale=c(7,.8)))
 
 
 ```
 
 ## COMMENTO
-Innanzitutto notiamo come il possesso di un arma da fuoco influenzi il poliziotto a sparare probabilmente per proteggere la sua incolumità, ciò a supporto dell'analisi precedentemente fatta. Alla maggior parte delle sparatorie partecipano persone che hanno un attegiamento aggressivo e in possesso di arma.
+Innanzitutto notiamo come il possesso di un'arma da fuoco influenzi il poliziotto a sparare probabilmente per proteggere la sua incolumità, ciò a supporto dell'analisi precedentemente fatta. Alla maggior parte delle sparatorie partecipano persone che hanno un attegiamento aggressivo e in possesso di arma da fuoco.
 
 
 
@@ -305,17 +322,19 @@ La mia ipotesi è stata subito confutata dai dati,in quanto non vi è alcuna rel
 E' facile cadere nel falso equivoco e nell'errata echitettatura di tutti i criminali come "persone con malattie mentali".
 ```{r echo=FALSE}
 
-shootingXsigns_of_mental_illness<-shootings %>% count(signs_of_mental_illness)
+shootings<-shootings %>% rename(malato_mentalmente=signs_of_mental_illness)
+
+shootingXsigns_of_mental_illness<-shootings %>% count(malato_mentalmente)
 
 
-shootingXsigns_of_mental_illnessPlot<-shootingXsigns_of_mental_illness %>% ggplot(aes(x = "", y=n, fill =signs_of_mental_illness)) + 
+shootingXsigns_of_mental_illnessPlot<-shootingXsigns_of_mental_illness %>% ggplot(aes(x = "", y=n, fill =malato_mentalmente)) + 
   geom_bar(width = 1, stat = "identity") +
-  labs(fill="signs_of_mental_illness", 
+  labs(fill="malato_mentalmente", 
        x=NULL, 
        y=NULL
        )
 
-shootingXsigns_of_mental_illnessPlot + coord_polar(theta = "y", start=0)
+shootingXsigns_of_mental_illnessPlot + coord_polar(theta = "y", start=0)+theme_bw()
 
 ```
 
@@ -325,14 +344,14 @@ shootingXsigns_of_mental_illnessPlot + coord_polar(theta = "y", start=0)
 Un'altra analisi interessante al di fuori di cosa influenza un poliziotto è il possedimento di armi da parte dei minori e quindi di chi non potrebbe averla.
 A supporto dell'analisi sull'età media,le persone di discendenza africana potrebbero essere state  coinvolte prima nella criminalità.
 ```{r echo=FALSE}
-black_number <- shootings %>% filter(race=="Black") %>%  mutate(number=1)
+black_number <- shootings %>% filter(razza=="Black") %>%  mutate(numero=1)
 
-black_number<-sum(black_number$number)
+black_number<-sum(black_number$numero)
 
 
-blackArmed_teenager<-shootings %>% filter(race=="Black",armed=="gun"||armed=="vehicle and gun",age<18)%>% mutate(number=1)
+blackArmed_teenager<-shootings %>% filter(razza=="Black",arma=="gun"||arma=="vehicle and gun",età<18)%>% mutate(numero=1)
 
-blackArmed_teenager=sum(blackArmed_teenager$number)
+blackArmed_teenager=sum(blackArmed_teenager$numero)
 
 blackArmed_teenager=(blackArmed_teenager/black_number)*100
 
@@ -341,14 +360,14 @@ blackArmed_teenager=(blackArmed_teenager/black_number)*100
 
 
 
-white_number <- shootings %>% filter(race=="White") %>%  mutate(number=1)
+white_number <- shootings %>% filter(razza=="White") %>%  mutate(numero=1)
 
-white_number<-sum(white_number$number)
+white_number<-sum(white_number$numero)
 
 
-whiteArmed_teenager<-shootings %>% filter(race=="White",armed=="gun"||armed=="vehicle and gun",age<18)%>% mutate(number=1)
+whiteArmed_teenager<-shootings %>% filter(razza=="White",arma=="gun"||arma=="vehicle and gun",età<18)%>% mutate(numero=1)
 
-whiteArmed_teenager=sum(whiteArmed_teenager$number)
+whiteArmed_teenager=sum(whiteArmed_teenager$numero)
 
 
 whiteArmed_teenager=(whiteArmed_teenager/white_number)*100
@@ -359,14 +378,14 @@ whiteArmed_teenager=(whiteArmed_teenager/white_number)*100
 
 
 
-hispanic_number <- shootings %>% filter(race=="Hispanic") %>%  mutate(number=1)
+hispanic_number <- shootings %>% filter(razza=="Hispanic") %>%  mutate(numero=1)
 
-hispanic_number<-sum(hispanic_number$number)
+hispanic_number<-sum(hispanic_number$numero)
 
 
-hispanicArmed_teenager<-shootings %>% filter(race=="Hispanic",armed=="gun"||armed=="vehicle and gun",age<18)%>% mutate(number=1)
+hispanicArmed_teenager<-shootings %>% filter(razza=="Hispanic",arma=="gun"||arma=="vehicle and gun",età<18)%>% mutate(numero=1)
 
-hispanicArmed_teenager=sum(hispanicArmed_teenager$number)
+hispanicArmed_teenager=sum(hispanicArmed_teenager$numero)
 
 hispanicArmed_teenager=(hispanicArmed_teenager/hispanic_number)*100
 
@@ -377,7 +396,7 @@ teenager_armed<-c(
   'percentage_white'= whiteArmed_teenager,
   'percentage_hispanic'=hispanicArmed_teenager)
 
-teenager_armedPlot<-barplot(teenager_armed,main="percentage of teenagers who own a gun per race
+teenager_armedPlot<-barplot(teenager_armed,main="percentuale di ragazzi minorenni che possedevano un'arma
 ",col="lightblue", ylim = c(0,3))
 
 
@@ -387,12 +406,16 @@ teenager_armedPlot<-barplot(teenager_armed,main="percentage of teenagers who own
 
 
 ## DOVE ACCADONO LE SPARATORIE?
-Passando agli stati dove le sparatorie avvengono più frequentemente, secondo la mappa, la California ha il numero maggiore,seguita da Texas e Florida
+Passando agli stati dove le sparatorie avvengono più frequentemente, secondo la mappa, la California ha il numero maggiore,seguita da Texas e Florida.
 ```{r echo=FALSE}
 
-shootingXstate<-as.data.frame(count(shootings,state))
+shootings<-shootings %>% rename(stato=state)
+
+
+shootingXstate<-as.data.frame(count(shootings,stato))
+
 names(shootingXstate)<-c('state','number_of_case')
-plot_usmap(data=shootingXstate, values = "number_of_case", color = "black") + scale_fill_continuous(low = "white", high = "blue", name = "Total shooting")+theme(legend.position = "right")
+plot_usmap(data=shootingXstate, values = "number_of_case", color = "black") + scale_fill_continuous(low = "white", high = "blue", name = "numero totale di sparatorie")+theme(legend.position = "right")
 
 
 
@@ -407,10 +430,13 @@ Entrando più nel dettaglio,vediamo quale Città è più soggetta a questo fenom
 
 ```{r echo=FALSE}
 
-shootingXcity<-shootings %>% count(city) %>% top_n(10)
-shootingsXcity<-inner_join(shootingXcity,shootings,by="city")
 
-shootingsXcityPlot<-shootingsXcity %>%  ggplot(aes(city))+geom_bar(fill="lightblue")+labs(y="shootings")+coord_flip()
+shootings<-shootings %>% rename(città=city)
+
+shootingXcity<-shootings %>% count(città) %>% top_n(10)
+shootingsXcity<-inner_join(shootingXcity,shootings,by="città")
+
+shootingsXcityPlot<-shootingsXcity %>%  ggplot(aes(città))+geom_bar(fill="lightblue")+labs(y="sparatorie")+coord_flip()
 
 
 shootingsXcityPlot
@@ -430,11 +456,12 @@ Questo ci fa capire che la dimensione della città non è un fattore "determinan
 
 Possiamo affermare che: 
 
-1. I fattori influenzanti sono il threat_level e arms_category. Se la persona è aggressiva e/o tiene in mano una pistola,vi è più probabilità che la polizia spari.
+1. I fattori influenzanti sono il livello di pericolosità e la categoria di arma posseduta.
+Se la persona è aggressiva e/o tiene in mano una pistola,vi è più probabilità che la polizia spari.
 
 2. NON è influenzata dallo stato mentale del soggetto.
 
-3. I bianchi sono stati le più vittime più frequenti negli Stati Uniti, seguiti da neri e ispanici. (Tenendo conto della percentuale di popolazione)
+3. I bianchi sono stati le più vittime più frequenti negli Sstati Uniti, seguiti da neri e ispanici. (Tenendo conto della percentuale di popolazione)
 
 4. Il numero di morti sta diminuendo nel corso degli anni.  
 
